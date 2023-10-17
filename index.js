@@ -4,13 +4,60 @@
 
 // Dependencies
 const http = require('http');
+const https = require('https')
 const url = require('url');
 const config = require('./config.js')
+const fs = require('fs');
 
 const { StringDecoder } = require('string_decoder');
 
 // the server should respond to all requests with a string
-const server = http.createServer((req, res) => {
+const httpServer = http.createServer((req, res) => {
+    unifiedServer(req, res);
+})
+
+let httpsOptions = {
+    key: fs.readFileSync('./https/key.pem'),
+    cert: fs.readFileSync('./https/cert.pem')
+}
+
+const httpsServer = https.createServer(httpsOptions, (req, res) => {
+    unifiedServer(req, res);
+})
+
+httpServer.listen(config.httpPort, () => {
+    console.log(
+        `This server is listening on port ${config.httpPort} now, on ${config.envName} environment`)
+})
+
+httpsServer.listen(config.httpsPort, () => {
+    console.log(
+        `This server is listening on port ${config.httpsPort} now, on ${config.envName} environment`)
+})
+
+
+// define handlers 
+var handlers = {}
+
+handlers.sample = function (data, callback) {
+    //Callback a HTTP status code, and a payload.
+    callback(406, { 'name': 'sample handler' })
+}
+
+
+handlers.notFound = function (data, callback) {
+    callback(404, { "error": "Not Found" })
+}
+
+// Define a request router
+
+var router = {
+    '/sample': handlers.sample,
+}
+
+
+// All the server logic for both https and https. 
+let unifiedServer = (req, res) => {
     // get the url and parse it
     const parsedUrl = url.parse(req.url, true)
 
@@ -68,30 +115,4 @@ const server = http.createServer((req, res) => {
             console.log('Returning this response: ', statusCode, payloadString);
         })
     })
-})
-
-server.listen(config.port, () => {
-    console.log(
-        `This server is listening on port ${config.port} now, on ${config.envName} environment`,
-    )
-})
-
-
-// define handlers 
-var handlers = {}
-
-handlers.sample = function (data, callback) {
-    //Callback a HTTP status code, and a payload.
-    callback(406, { 'name': 'sample handler' })
-}
-
-
-handlers.notFound = function (data, callback) {
-    callback(404, { "error": "Not Found" })
-}
-
-// Define a request router
-
-var router = {
-    '/sample': handlers.sample,
 }
