@@ -39,20 +39,20 @@ httpsServer.listen(config.httpsPort, () => {
 // define handlers 
 var handlers = {}
 
-handlers.sample = function (data, callback) {
-    //Callback a HTTP status code, and a payload.
-    callback(406, { 'name': 'sample handler' })
+
+handlers.ping = (data, callback) => {
+    callback(200)
 }
 
 
-handlers.notFound = function (data, callback) {
+handlers.notFound = (data, callback) => {
     callback(404, { "error": "Not Found" })
 }
 
 // Define a request router
 
 var router = {
-    '/sample': handlers.sample,
+    '/ping': handlers.ping,
 }
 
 
